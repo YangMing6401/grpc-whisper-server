@@ -125,6 +125,9 @@ class TranscriptionService(GrpcTranscriptionService):
             while request_id not in self.result_dict:
                 await asyncio.sleep(0.05)
             result = self.result_dict[request_id]
+            if result is None:
+                logger.error(f"Result for request ID {request_id} is None. Possible issue in processing.")
+                raise ValueError(f"Result for request ID {request_id} is None.")
             logger.debug(f"Got result for request {request_id}: {result}")
             del self.result_dict[request_id]
             response = TranscriptionResponse(
