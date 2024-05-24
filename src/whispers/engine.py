@@ -71,9 +71,12 @@ class WhisperEngine:
     ) -> WhisperResultWrapper:
         logger.debug(f"[{self.id}] Beginning transcription")
         start = time.perf_counter()
-        result = await self.model.transcribe(
+        try:
+            result = await self.model.transcribe(
             data, language=language, initial_prompt=initial_prompt, **kwargs
-        )
+            )
+        except Exception as e:
+                    logger.exception(f"[{self.id}] Transcription error: {e}")
         end = time.perf_counter()
         logger.debug(
             f"[{self.id}] Transcription finished transcription in {end-start:.2f} seconds"
