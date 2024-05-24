@@ -117,6 +117,7 @@ class TranscriptionService(GrpcTranscriptionService):
             if len(request.data) == 0:
                 raise EmptyAudioError
             request_id = str(uuid4())
+            logger.debug(f"Got id and data for request {request_id}: {request.data}")
             self.request_queue.put((request, request_id))
 
             # Note that this is not usually thread-safe i.e. sharing dict between threads
