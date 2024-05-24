@@ -17,6 +17,7 @@ def start_grpc(
     module: WhisperModules,
     model_size: WhisperModelSizes,
     devices: List[str],
+    ip_address: str,  # Add this parameter
     secure_port: bool = False,
     port: int = 50051,
     threads_count: int = 1,
@@ -29,6 +30,7 @@ def start_grpc(
                 module=module,
                 model_size=model_size,
                 secure_port=secure_port,
+                ip_address=ip_address,
                 port=port,
                 thread_count=threads_count,
                 devices=devices,
@@ -48,6 +50,7 @@ async def serve(
     module: WhisperModules,
     model_size: WhisperModelSizes,
     devices: List[str],
+    ip_address: str,
     secure_port: bool = False,
     port: int = 50051,
     thread_count: int = 1,
