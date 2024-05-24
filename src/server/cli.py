@@ -29,6 +29,13 @@ from src.whispers.utils import verify_devices_exist
     help="[NOT IMPLEMENTED YET] Whether to use secure or insecure port.",
 )
 @click.option(
+    "--ip-address",
+    "-ip",
+    default="0.0.0.0",
+    show_default=True,
+    help="The IP address the grpc server will bind to.",
+)
+@click.option(
     "--port",
     "-p",
     default=50051,
@@ -58,6 +65,7 @@ from src.whispers.utils import verify_devices_exist
 def run_server(
     module: WhisperModules,
     model_size: WhisperModelSizes,
+    ip_address: str,
     secure_port: bool,
     port: int,
     threads_count: int,
@@ -82,6 +90,7 @@ def run_server(
     start_grpc(
         module=module,
         model_size=model_size,
+        ip_address=ip_address,
         devices=devices,
         secure_port=secure_port,
         port=port,
