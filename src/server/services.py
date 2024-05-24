@@ -74,6 +74,7 @@ class TranscriptionService(GrpcTranscriptionService):
                     logger.debug(f"[{engine_opt['id']}] Request queue empty.")
                 except Exception as e:
                     logger.exception(f"Exception in engine thread {engine_opt['id']}: {e}")
+                    result_dict[request_id] = None  # Explicitly set None in case of error
 
 
         ready_events = []
