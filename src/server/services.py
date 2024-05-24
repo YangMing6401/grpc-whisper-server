@@ -128,8 +128,10 @@ class TranscriptionService(GrpcTranscriptionService):
             if result is None:
                 logger.error(f"Result for request ID {request_id} is None. Possible issue in processing.")
                 raise ValueError(f"Result for request ID {request_id} is None.")
+            
             logger.debug(f"Got result for request {request_id}: {result}")
             del self.result_dict[request_id]
+            
             response = TranscriptionResponse(
                 success=True,
                 message="success",
