@@ -59,6 +59,7 @@ class TranscriptionService(GrpcTranscriptionService):
                         logger.debug(f"[{engine_opt['id']}] Stop signal received.")
                         break
                     request, request_id = pending_request.get(timeout=1)
+                    logger.debug(f"[{engine_opt['id']}] Processing request {request_id}.")
                     result = loop.run_until_complete(
                         engine.transcribe(
                             request.data,
@@ -66,10 +67,14 @@ class TranscriptionService(GrpcTranscriptionService):
                             initial_prompt=request.initialPrompt,
                         )
                     )
+                    logger.debug(f"[{engine_opt['id']}] Finished request {request_id} with result {result}.")
                     result_dict[request_id] = result
                 except queue.Empty:
                     # Work around so we can catch the stop event.
                     logger.debug(f"[{engine_opt['id']}] Request queue empty.")
+                except Exception as e:
+                    logger.exception(f"Exception in engine thread {engine_opt['id']}: {e}")
+
 
         ready_events = []
         device_idx = 0
@@ -97,6 +102,7 @@ class TranscriptionService(GrpcTranscriptionService):
         logger.info("Waiting until at least one engine is ready.")
         while not any([e.is_set() for e in ready_events]):
             time.sleep(0.1)
+        logger.info("At least one engine is ready.")
         super().__init__(*args, **kwargs)
 
     @logger.catch
@@ -119,6 +125,7 @@ class TranscriptionService(GrpcTranscriptionService):
             while request_id not in self.result_dict:
                 await asyncio.sleep(0.05)
             result = self.result_dict[request_id]
+            logger.debug(f"Got result for request {request_id}: {result}")
             del self.result_dict[request_id]
             response = TranscriptionResponse(
                 success=True,
@@ -129,11 +136,11 @@ class TranscriptionService(GrpcTranscriptionService):
                     segments=[segment.to_dict() for segment in result.segments],
                 ),
             )
-        except EmptyAudioError as e:
-            logger.debug(f"Received empty audio.")
+        except EmptyAudioError:
+            logger.debug("Received empty audio.")
             response = TranscriptionResponse(
                 success=True,
-                message=f"Empty audio received",
+                message="Empty audio received",
                 result=TranscriptionResult(text="", language=None, segments=[]),
             )
         except Exception as e:
@@ -145,8 +152,8 @@ class TranscriptionService(GrpcTranscriptionService):
             end = time.perf_counter()
             if response:
                 logger.info(
-                    f"Request finished with status '{'success' if response.success else 'failed'}' in {end-start:.2f}"
+                    f"Request finished with status '{'success' if response.success else 'failed'}' in {end - start:.2f} seconds"
                 )
             else:
-                logger.warning(f"Empty response produced!")
+                logger.warning("Empty response produced!")
             return response
